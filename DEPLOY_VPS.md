@@ -18,6 +18,7 @@
    echo "JWT_SECRET=sua-chave-secreta-minimo-32-caracteres-aqui" > .env
    ```
    **Importante:** Gere uma chave forte para `JWT_SECRET` (mín. 32 caracteres).
+   - `COOKIE_SECURE=false` já está no docker-compose para HTTP (sem HTTPS). Quando usar HTTPS, remova essa variável.
 
 3. Execute o deploy:
    ```bash

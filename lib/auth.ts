@@ -64,12 +64,14 @@ export function unauthorized() {
   return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 }
 
-/** Opções do cookie de sessão (httpOnly, secure em prod). */
+/** Opções do cookie de sessão (httpOnly, secure em prod com HTTPS). */
 export function getSessionCookieOptions() {
   const isProd = process.env.NODE_ENV === 'production';
+  // Em prod sem HTTPS (ex: VPS em HTTP na porta 3847), cookie Secure não é armazenado
+  const useSecure = isProd && process.env.COOKIE_SECURE !== 'false';
   return {
     httpOnly: true,
-    secure: isProd,
+    secure: useSecure,
     sameSite: 'lax' as const,
     path: '/',
     maxAge: MAX_AGE,
