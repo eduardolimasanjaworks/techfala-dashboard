@@ -63,12 +63,33 @@ export function BurndownChart({
 
     const colors = colorMap[color];
 
-    // Check if project is behind (actual work remaining > ideal)
+    // Proporção: atrasado se trabalho restante > ideal; adiantado se < ideal
     const currentIndex = workRemaining.length - 1;
-    const isBehind = workRemaining[currentIndex] > idealLine[currentIndex];
+    const currentActual = workRemaining[currentIndex];
+    const currentIdeal = idealLine[currentIndex];
+    const isBehind = currentActual > currentIdeal;
+    const isAhead = currentActual < currentIdeal && currentActual > 0;
 
     return (
         <div className="relative w-full" style={{ height: `${height}px` }}>
+            {isBehind && (
+                <div
+                    role="alert"
+                    className="absolute -top-10 right-0 z-10 flex items-center gap-1.5 rounded-md border border-amber-500/50 bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-300 shadow-md"
+                >
+                    <span aria-hidden>⚠</span>
+                    <span>Atrasado em relação ao ideal</span>
+                </div>
+            )}
+            {isAhead && (
+                <div
+                    role="status"
+                    className="absolute -top-10 right-0 z-10 flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-400 shadow-md"
+                >
+                    <span aria-hidden>✓</span>
+                    <span>Adiantado em relação ao ideal</span>
+                </div>
+            )}
             <svg
                 width="100%"
                 height={height}
@@ -82,7 +103,7 @@ export function BurndownChart({
                     y1="25"
                     x2="100"
                     y2="25"
-                    stroke="rgba(255, 255, 255, 0.03)"
+                    stroke="rgba(255, 255, 255, 0.08)"
                     strokeWidth="0.5"
                     vectorEffect="non-scaling-stroke"
                 />
@@ -91,7 +112,7 @@ export function BurndownChart({
                     y1="50"
                     x2="100"
                     y2="50"
-                    stroke="rgba(255, 255, 255, 0.05)"
+                    stroke="rgba(255, 255, 255, 0.12)"
                     strokeWidth="0.5"
                     vectorEffect="non-scaling-stroke"
                 />
@@ -100,7 +121,7 @@ export function BurndownChart({
                     y1="75"
                     x2="100"
                     y2="75"
-                    stroke="rgba(255, 255, 255, 0.03)"
+                    stroke="rgba(255, 255, 255, 0.08)"
                     strokeWidth="0.5"
                     vectorEffect="non-scaling-stroke"
                 />
@@ -156,8 +177,8 @@ export function BurndownChart({
                 <text
                     x="2"
                     y="8"
-                    fontSize="6"
-                    fill="rgba(255, 255, 255, 0.4)"
+                    fontSize="8"
+                    fill="rgba(255, 255, 255, 0.6)"
                     vectorEffect="non-scaling-stroke"
                 >
                     {Math.round(maxValue)}
@@ -165,30 +186,27 @@ export function BurndownChart({
                 <text
                     x="2"
                     y="98"
-                    fontSize="6"
-                    fill="rgba(255, 255, 255, 0.4)"
+                    fontSize="8"
+                    fill="rgba(255, 255, 255, 0.6)"
                     vectorEffect="non-scaling-stroke"
                 >
                     0
                 </text>
             </svg>
 
-            {/* Legend and status */}
-            <div className="absolute -bottom-5 left-0 flex items-center gap-3 text-[10px] text-[#9CA3AF]">
-                <div className="flex items-center gap-1">
+            {/* Legenda (Real / Ideal) — sem aviso, que fica separado acima */}
+            <div className="absolute -bottom-6 left-0 flex items-center gap-4 text-sm text-[#a1a1aa]">
+                <div className="flex items-center gap-1.5">
                     <div
-                        className="w-2 h-2 rounded-full"
+                        className="w-2.5 h-2.5 rounded-full"
                         style={{ backgroundColor: isBehind ? colors.warning : colors.actual }}
                     />
                     <span>Real</span>
                 </div>
-                <div className="flex items-center gap-1">
-                    <div className="w-2 h-0.5" style={{ backgroundColor: colors.ideal }} />
+                <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-1 rounded" style={{ backgroundColor: colors.ideal }} />
                     <span>Ideal</span>
                 </div>
-                {isBehind && (
-                    <span className="text-[9px] text-orange-400 font-medium">⚠ Atrasado</span>
-                )}
             </div>
         </div>
     );

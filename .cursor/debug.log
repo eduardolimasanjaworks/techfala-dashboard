@@ -1,0 +1,15 @@
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"Failed to fetch"},"timestamp":1771385765271,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"Failed to fetch"},"timestamp":1771385765279,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"Failed to fetch"},"timestamp":1771387103583,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"Failed to fetch"},"timestamp":1771387905482,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"Failed to fetch"},"timestamp":1771387905618,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject","message":"response not ok","data":{"status":404,"url":"http://localhost:3000/api/projects/cmlr0igkm0000v8sw7iuc9jqo"},"timestamp":1771387906369,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"NEXT_HTTP_ERROR_FALLBACK;404"},"timestamp":1771387906371,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject","message":"response not ok","data":{"status":404,"url":"http://localhost:3000/api/projects/cmlr0igkm0000v8sw7iuc9jqo"},"timestamp":1771388579238,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"NEXT_HTTP_ERROR_FALLBACK;404"},"timestamp":1771388579240,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject","message":"response not ok","data":{"status":404,"url":"http://localhost:3000/api/projects/cmlrjcowx0001v8y0risaymai"},"timestamp":1771390158713,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"NEXT_HTTP_ERROR_FALLBACK;404"},"timestamp":1771390158714,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject","message":"response not ok","data":{"status":404,"url":"http://localhost:3000/api/projects/cmlrjcowx0001v8y0risaymai"},"timestamp":1771390158874,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"NEXT_HTTP_ERROR_FALLBACK;404"},"timestamp":1771390158875,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject","message":"response not ok","data":{"status":404,"url":"http://localhost:3000/api/projects/cmlrjcowx0001v8y0risaymai"},"timestamp":1771390160954,"hypothesisId":"H3"}
+{"location":"app/projects/[id]/page.tsx:fetchProject:catch","message":"fetch threw","data":{"errMsg":"NEXT_HTTP_ERROR_FALLBACK;404"},"timestamp":1771390160955,"hypothesisId":"H3"}

@@ -1,20 +1,29 @@
 // Mock data structure based on the reference image
+export interface ProjectStatus {
+  id: string;
+  nome: string;
+  cor: string;
+  ordem: number;
+}
+
 export interface Project {
   id: string;
   empresa: string;
   gerente: string;
+  projectStatusId?: string;
+  projectStatus?: ProjectStatus;
   diasAtraso: number;
   statusBadge: 'Em Atraso' | 'No Prazo' | 'Em Andamento';
-  indiceVelocidade: number;
+  indiceVelocidade?: number | null;
   velocidadeData: number[];
   // Burndown chart data: work remaining over time (should decrease)
   burndownData: number[];
   totalWork: number; // Total work at project start
-  statusVelocidade: 'No Prazo' | 'Atrasado';
+  statusVelocidade: 'No Prazo' | 'Atrasado' | null;
   progresso: number;
   proximaConclusao: string;
   tarefasAtivas: number;
-  statusGeral: 'Excelente' | 'Atenção' | 'Crítico';
+  statusGeral: 'Excelente' | 'Atenção' | 'Crítico' | null;
   statusProjeto?: 'Atrasado' | 'No Prazo' | 'Para Começar' | 'Stand By' | 'Aguardando Confirmação';
   statusOnboarding?: 'Esperando Contrato' | 'Esperando Pagamento' | 'Iniciar Onboarding';
   dataInicio: string;
@@ -56,6 +65,102 @@ export interface Project {
     texto: string;
   }[];
   logo?: string;
+  // Kanban/Pipelines
+  pipelines?: Pipeline[];
+}
+
+// Estrutura de Kanban/Pipeline
+export interface Pipeline {
+  id: string;
+  nome: string;
+  colunas: Coluna[];
+}
+
+export interface Coluna {
+  id: string;
+  nome: string;
+  ordem: number;
+  cor?: string;
+  corFonte?: string;
+  responsavelNome?: string;
+  tasks: Task[];
+}
+
+export interface TaskComment {
+  id: string;
+  autor: string;
+  texto: string;
+  data: string;
+  createdAt?: string;
+}
+
+export interface SubtaskComment {
+  id: string;
+  autor: string;
+  texto: string;
+  data: string;
+  createdAt?: string;
+}
+
+export interface SubtaskList {
+  id: string;
+  nome: string;
+  ordem: number;
+  subtasks?: { id: string }[];
+}
+
+export interface SubtaskNested {
+  id: string;
+  titulo: string;
+  concluida: boolean;
+  dataInicio?: string;
+  dataVencimento?: string;
+  ordem?: number;
+  responsavel?: { nome: string; avatar?: string };
+  /** Comentários da sub-subtarefa (estado local / API quando existir) */
+  nestedComments?: SubtaskComment[];
+}
+
+export interface Label {
+  id: string;
+  nome: string;
+  cor: string;
+  ordem?: number;
+}
+
+export interface Task {
+  id: string;
+  epicId?: string;
+  titulo: string;
+  descricao?: string;
+  dataVencimento?: string;
+  dataCriacao: string;
+  responsavel?: {
+    nome: string;
+    avatar?: string;
+  };
+  subtasks?: Subtask[];
+  taskComments?: TaskComment[];
+  subtaskLists?: SubtaskList[];
+  prioridade?: 'baixa' | 'media' | 'alta' | 'urgente';
+  tags?: string[];
+  labels?: Label[];
+}
+
+export interface Subtask {
+  id: string;
+  titulo: string;
+  concluida: boolean;
+  dataInicio?: string;
+  dataVencimento?: string;
+  ordem?: number;
+  subtaskListId?: string;
+  responsavel?: {
+    nome: string;
+    avatar?: string;
+  };
+  nestedSubtasks?: SubtaskNested[];
+  subtaskComments?: SubtaskComment[];
 }
 
 export const mockProjects: Project[] = [
@@ -146,6 +251,171 @@ export const mockProjects: Project[] = [
         texto: 'Encontramos alguns problemas na integração da API. Investigando soluções.',
       },
     ],
+    pipelines: [
+      {
+        id: 'pipeline-1',
+        nome: 'Pipeline Principal',
+        colunas: [
+          {
+            id: 'coluna-1',
+            nome: 'Backlog',
+            ordem: 0,
+            tasks: [
+              {
+                id: 'task-1',
+                titulo: 'Implementar sistema de autenticação',
+                descricao: 'Criar sistema completo de autenticação com JWT',
+                dataVencimento: '2024-04-15',
+                dataCriacao: '2024-03-20',
+                responsavel: { nome: 'João Oliveira' },
+                prioridade: 'alta',
+                subtasks: [
+                  {
+                    id: 'subtask-1',
+                    titulo: 'Configurar JWT tokens',
+                    concluida: false,
+                    dataVencimento: '2024-04-10',
+                    responsavel: { nome: 'João Oliveira' },
+                  },
+                  {
+                    id: 'subtask-2',
+                    titulo: 'Criar middleware de autenticação',
+                    concluida: false,
+                    dataVencimento: '2024-04-12',
+                    responsavel: { nome: 'João Oliveira' },
+                  },
+                ],
+              },
+              {
+                id: 'task-2',
+                titulo: 'Design do dashboard principal',
+                descricao: 'Criar wireframes e mockups do dashboard',
+                dataVencimento: '2024-04-20',
+                dataCriacao: '2024-03-18',
+                responsavel: { nome: 'Maria Santos' },
+                prioridade: 'media',
+              },
+            ],
+          },
+          {
+            id: 'coluna-2',
+            nome: 'Em Progresso',
+            ordem: 1,
+            tasks: [
+              {
+                id: 'task-3',
+                titulo: 'Desenvolver API de usuários',
+                descricao: 'Criar endpoints para CRUD de usuários',
+                dataVencimento: '2024-04-10',
+                dataCriacao: '2024-03-15',
+                responsavel: { nome: 'Pedro Costa' },
+                prioridade: 'alta',
+                subtasks: [
+                  {
+                    id: 'subtask-3',
+                    titulo: 'Criar modelo de dados',
+                    concluida: true,
+                    responsavel: { nome: 'Pedro Costa' },
+                  },
+                  {
+                    id: 'subtask-4',
+                    titulo: 'Implementar endpoints GET',
+                    concluida: true,
+                    responsavel: { nome: 'Pedro Costa' },
+                  },
+                  {
+                    id: 'subtask-5',
+                    titulo: 'Implementar endpoints POST/PUT/DELETE',
+                    concluida: false,
+                    dataVencimento: '2024-04-08',
+                    responsavel: { nome: 'Pedro Costa' },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'coluna-3',
+            nome: 'Em Revisão',
+            ordem: 2,
+            tasks: [
+              {
+                id: 'task-4',
+                titulo: 'Integração com API externa',
+                descricao: 'Integrar com API de pagamentos',
+                dataVencimento: '2024-04-05',
+                dataCriacao: '2024-03-10',
+                responsavel: { nome: 'Ana Silva' },
+                prioridade: 'urgente',
+              },
+            ],
+          },
+          {
+            id: 'coluna-4',
+            nome: 'Concluído',
+            ordem: 3,
+            tasks: [
+              {
+                id: 'task-5',
+                titulo: 'Setup inicial do projeto',
+                descricao: 'Configurar estrutura base do projeto',
+                dataVencimento: '2024-03-25',
+                dataCriacao: '2024-03-01',
+                responsavel: { nome: 'Ana Silva' },
+                prioridade: 'media',
+                subtasks: [
+                  {
+                    id: 'subtask-6',
+                    titulo: 'Configurar repositório Git',
+                    concluida: true,
+                    responsavel: { nome: 'Ana Silva' },
+                  },
+                  {
+                    id: 'subtask-7',
+                    titulo: 'Configurar ambiente de desenvolvimento',
+                    concluida: true,
+                    responsavel: { nome: 'Ana Silva' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'pipeline-2',
+        nome: 'Pipeline de Testes',
+        colunas: [
+          {
+            id: 'coluna-5',
+            nome: 'Para Testar',
+            ordem: 0,
+            tasks: [
+              {
+                id: 'task-6',
+                titulo: 'Testes de integração',
+                dataVencimento: '2024-04-25',
+                dataCriacao: '2024-03-22',
+                responsavel: { nome: 'Juliana Ramos' },
+                prioridade: 'alta',
+              },
+            ],
+          },
+          {
+            id: 'coluna-6',
+            nome: 'Testando',
+            ordem: 1,
+            tasks: [],
+          },
+          {
+            id: 'coluna-7',
+            nome: 'Aprovado',
+            ordem: 2,
+            tasks: [],
+          },
+        ],
+      },
+    ],
   },
   {
     id: '2',
@@ -208,6 +478,72 @@ export const mockProjects: Project[] = [
           { id: '4', titulo: 'Implementar funcionalidade AR', concluido: false },
           { id: '5', titulo: 'Desenvolver sistema de checkout', concluido: false },
           { id: '6', titulo: 'Integração com gateways de pagamento', concluido: false },
+        ],
+      },
+    ],
+    pipelines: [
+      {
+        id: 'pipeline-3',
+        nome: 'Pipeline Mobile',
+        colunas: [
+          {
+            id: 'coluna-8',
+            nome: 'Planejamento',
+            ordem: 0,
+            tasks: [
+              {
+                id: 'task-7',
+                titulo: 'Definir arquitetura do app',
+                dataVencimento: '2024-05-01',
+                dataCriacao: '2024-03-25',
+                responsavel: { nome: 'Rafael Torres' },
+                prioridade: 'alta',
+              },
+            ],
+          },
+          {
+            id: 'coluna-9',
+            nome: 'Desenvolvimento',
+            ordem: 1,
+            tasks: [
+              {
+                id: 'task-8',
+                titulo: 'Implementar funcionalidade AR',
+                dataVencimento: '2024-05-15',
+                dataCriacao: '2024-03-20',
+                responsavel: { nome: 'Rafael Torres' },
+                prioridade: 'urgente',
+                subtasks: [
+                  {
+                    id: 'subtask-8',
+                    titulo: 'Integrar biblioteca AR',
+                    concluida: false,
+                    dataVencimento: '2024-05-10',
+                    responsavel: { nome: 'Rafael Torres' },
+                  },
+                  {
+                    id: 'subtask-9',
+                    titulo: 'Criar interface AR',
+                    concluida: false,
+                    dataVencimento: '2024-05-12',
+                    responsavel: { nome: 'Rafael Torres' },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'coluna-10',
+            nome: 'Testes',
+            ordem: 2,
+            tasks: [],
+          },
+          {
+            id: 'coluna-11',
+            nome: 'Concluído',
+            ordem: 3,
+            tasks: [],
+          },
         ],
       },
     ],

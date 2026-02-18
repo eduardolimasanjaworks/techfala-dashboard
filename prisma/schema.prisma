@@ -1,0 +1,373 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ProjectStatus {
+  id     String  @id @default(cuid())
+  nome   String
+  cor    String  @default("#8B5CF6")
+  ordem  Int     @default(0)
+  projects Project[]
+
+  @@index([ordem])
+}
+
+model Project {
+  id                String   @id @default(cuid())
+  empresa           String
+  gerente           String
+  projectStatusId   String?
+  projectStatus     ProjectStatus? @relation(fields: [projectStatusId], references: [id], onDelete: SetNull)
+  diasAtraso        Int      @default(0)
+  statusBadge       String   // 'Em Atraso' | 'No Prazo' | 'Em Andamento'
+  indiceVelocidade  Float?   // pts/sprint - só exibido quando preenchido
+  statusVelocidade  String   @default("No Prazo") // 'No Prazo' | 'Atrasado'
+  progresso         Int      @default(0)
+  proximaConclusao  String   @default("0.00")
+  tarefasAtivas     Int      @default(0)
+  statusGeral       String   @default("Excelente") // 'Excelente' | 'Atenção' | 'Crítico'
+  statusProjeto     String?  // 'Atrasado' | 'No Prazo' | 'Para Começar' | 'Stand By' | 'Aguardando Confirmação'
+  statusOnboarding  String?  // 'Esperando Contrato' | 'Esperando Pagamento' | 'Iniciar Onboarding'
+  dataInicio        String
+  dataFim           String?
+  email             String?
+  telefone          String?
+  endereco          String?
+  descricao         String?
+  orcamento         Float?
+  logo              String?
+  
+  // Relacionamentos
+  equipe            TeamMember[]
+  timeline          TimelineEvent[]
+  checklists        Checklist[]
+  comentarios       Comment[]
+  pipelines         Pipeline[]
+  velocidadeData    VelocityData[]
+  burndownData      BurndownData[]
+  labels            Label[]
+
+  @@index([projectStatusId])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Label {
+  id        String  @id @default(cuid())
+  projectId String
+  nome      String
+  cor       String  @default("#8B5CF6")
+  ordem     Int     @default(0)
+  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  
+  @@index([projectId])
+}
+
+model TeamMember {
+  id        String  @id @default(cuid())
+  projectId String
+  nome      String
+  cargo     String
+  avatar    String?
+  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+}
+
+model TimelineEvent {
+  id        String  @id @default(cuid())
+  projectId String
+  data      String
+  evento    String
+  tipo      String  // 'inicio' | 'milestone' | 'atraso' | 'conclusao'
+  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+}
+
+model Checklist {
+  id        String      @id @default(cuid())
+  projectId String
+  nome      String
+  
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items     ChecklistItem[]
+  tasks     Task[]     // Tasks do Kanban vinculadas a este Epic
+  
+  @@index([projectId])
+}
+
+model ChecklistItem {
+  id         String   @id @default(cuid())
+  checklistId String
+  titulo     String
+  concluido  Boolean  @default(false)
+  
+  checklist  Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  
+  @@index([checklistId])
+}
+
+model Comment {
+  id        String  @id @default(cuid())
+  projectId String
+  autor     String
+  data      String
+  texto     String
+  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+}
+
+model Pipeline {
+  id        String    @id @default(cuid())
+  projectId String
+  nome      String
+  deletedAt DateTime? // soft delete: vai para lixeira
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  colunas   Column[]
+  
+  @@index([projectId])
+}
+
+model Column {
+  id               String  @id @default(cuid())
+  pipelineId       String
+  nome             String
+  ordem            Int
+  cor              String? @default("#1b064b")
+  corFonte         String? @default("#ffffff")
+  responsavelNome  String?
+
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  tasks      Task[]
+
+  @@index([pipelineId])
+  @@map("columns")
+}
+
+model Task {
+  id            String    @id @default(cuid())
+  columnId      String
+  epicId        String?   // Epic = Checklist (visão macro)
+  titulo        String
+  descricao     String?
+  dataVencimento String?
+  dataCriacao   String
+  prioridade    String?   // 'baixa' | 'media' | 'alta' | 'urgente'
+  tags          String?   // JSON array de tags
+  responsavelNome String?
+  responsavelAvatar String?
+  deletedAt    DateTime? // soft delete: preenchido quando o card foi para a lixeira
+  deletedBy    String?   // userId de quem apagou
+  
+  column        Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  epic          Checklist? @relation(fields: [epicId], references: [id], onDelete: SetNull)
+  subtasks      Subtask[]
+  taskComments  TaskComment[]
+  subtaskLists  SubtaskList[]
+  labels        Label[]
+  
+  @@index([columnId])
+  @@index([epicId])
+  @@index([deletedAt])
+}
+
+// Registro de tudo que é feito e por quem (auditoria)
+model ActivityLog {
+  id        String   @id @default(cuid())
+  projectId String?  // projeto relacionado (para filtrar atividades do projeto)
+  taskId    String?  // card relacionado (se aplicável)
+  userId    String?  // quem fez (referência ao User)
+  autor     String   // nome de quem fez (para exibição)
+  action    String   // ex: task_created, task_updated, task_deleted, task_restored, task_moved, comment_added
+  details   String?  // JSON com contexto (ex: { columnId, titulo, oldValue, newValue })
+  createdAt DateTime @default(now())
+  
+  @@index([projectId])
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+// Comentários gerais do card (aba à direita, estilo Trello)
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  autor     String
+  autorId   String?  // userId se tiver sessão
+  texto     String
+  createdAt DateTime @default(now())
+  
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  @@index([taskId])
+}
+
+// Listas para agrupar subtarefas dentro da task
+model SubtaskList {
+  id        String   @id @default(cuid())
+  taskId    String
+  nome      String
+  ordem     Int      @default(0)
+  
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  subtasks  Subtask[]
+  
+  @@index([taskId])
+}
+
+model Subtask {
+  id                String          @id @default(cuid())
+  taskId            String
+  subtaskListId     String?         // agrupar em lista (opcional)
+  titulo            String
+  concluida         Boolean         @default(false)
+  dataInicio        String?         // data de início
+  dataVencimento    String?         // data de fim/vencimento
+  ordem             Int             @default(0)
+  responsavelNome   String?
+  responsavelAvatar String?
+  
+  task              Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  subtaskList       SubtaskList?    @relation(fields: [subtaskListId], references: [id], onDelete: SetNull)
+  nestedSubtasks    SubtaskNested[] @relation("SubtaskNested")
+  subtaskComments   SubtaskComment[]
+  
+  @@index([taskId])
+  @@index([subtaskListId])
+}
+
+// Comentários dentro de uma subtarefa (histórico)
+model SubtaskComment {
+  id        String   @id @default(cuid())
+  subtaskId String
+  autor     String
+  autorId   String?
+  texto     String
+  createdAt DateTime @default(now())
+  
+  subtask   Subtask  @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+  
+  @@index([subtaskId])
+}
+
+model VelocityData {
+  id        String  @id @default(cuid())
+  projectId String
+  valor     Float
+  ordem     Int     // Para manter a ordem dos valores
+  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+}
+
+model BurndownData {
+  id        String  @id @default(cuid())
+  projectId String
+  valor     Float
+  ordem     Int     // Para manter a ordem dos valores
+  
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  @@index([projectId])
+}
+
+// Notificações (ex.: menção @ em comentários)
+model Notification {
+  id          String    @id @default(cuid())
+  projectId   String
+  taskId      String?
+  subtaskId   String?
+  targetNome  String    // nome da pessoa mencionada (@Nome)
+  targetEmail String?   // email se disponível (para matching com User)
+  userId      String?   // se o mencionado for User do sistema
+  tipo        String    @default("mention") // 'mention' | ...
+  mensagem    String
+  link        String
+  lida        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([targetNome])
+  @@index([lida])
+}
+
+// Sistema de Autenticação
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  nome        String
+  senha       String   // Hash da senha
+  cargo       String   @default("usuario") // 'admin' | 'gerente' | 'usuario'
+  avatar      String?
+  ativo       Boolean  @default(true)
+  criadoPorId String?  // Quem criou este usuário (auditoria)
+  criadoPor   User?    @relation("UserCriadoPor", fields: [criadoPorId], references: [id], onDelete: SetNull)
+  criados     User[]   @relation("UserCriadoPor")
+
+  createdAt   DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([email])
+  @@index([criadoPorId])
+}
+
+// Auditoria de ações no painel admin (quem fez o quê, quando)
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   // Quem executou a ação
+  userNome  String   // Nome do usuário no momento (snapshot)
+  acao      String   // 'criar_usuario' | 'editar_usuario' | 'desativar_usuario' | 'reativar_usuario'
+  alvoTipo  String   // 'usuario'
+  alvoId    String?  // ID do registro afetado
+  detalhes  String?  // JSON com dados relevantes (ex: email do usuário criado)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([acao])
+  @@index([createdAt])
+}
+
+// Modelo de Cargos/Roles com permissões
+model Role {
+  id          String   @id @default(cuid())
+  nome        String   @unique
+  descricao   String?
+  permissoes  String   // JSON com array de permissões
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Subtask aninhada (subtask dentro de subtask)
+model SubtaskNested {
+  id                String   @id @default(cuid())
+  parentSubtaskId   String
+  titulo            String
+  concluida         Boolean  @default(false)
+  dataInicio        String?
+  dataVencimento    String?
+  ordem             Int      @default(0)
+  responsavelNome   String?
+  responsavelAvatar String?
+  
+  parentSubtask     Subtask  @relation("SubtaskNested", fields: [parentSubtaskId], references: [id], onDelete: Cascade)
+  
+  @@index([parentSubtaskId])
+}

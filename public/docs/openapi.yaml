@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: Techfala Dashboard API
+  description: API para gerenciamento de projetos, pipelines e tarefas (cards Kanban)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Desenvolvimento
+
+paths:
+  /api/tasks:
+    get:
+      summary: Listar tarefas com filtros
+      description: |
+        Filtros (query params):
+        - projectId: todas as tasks de um projeto
+        - columnId: todas as tasks de uma coluna
+        - pipelineId: todas as tasks de um pipeline
+        - projectId + columnId: tasks do projeto X na coluna Y
+      parameters:
+        - name: projectId
+          in: query
+          schema: { type: string }
+        - name: columnId
+          in: query
+          schema: { type: string }
+        - name: pipelineId
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de tarefas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks: { type: array }
+                  total: { type: integer }
+    post:
+      summary: Criar tarefa
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [columnId]
+              properties:
+                columnId: { type: string }
+                titulo: { type: string }
+                descricao: { type: string }
+                dataVencimento: { type: string }
+                prioridade: { type: string }
+                tags: { type: array }
+                responsavel: { type: object }
+                subtasks: { type: array }
+      responses:
+        '200':
+          description: Tarefa criada
+        '400':
+          description: Dados inválidos
+        '404':
+          description: Coluna não encontrada
+
+  /api/tasks/{id}:
+    get:
+      summary: Obter tarefa por ID
+    put:
+      summary: Atualizar tarefa (titulo, descricao, columnId, etc)
+    delete:
+      summary: Excluir tarefa (soft delete)
+
+  /api/projects:
+    get:
+      summary: Listar projetos
+      description: |
+        Query param include:
+        - minimal: apenas projetos (sem pipelines)
+        - pipelines: projetos + pipelines + colunas (sem tasks)
+        - full: projetos + pipelines + colunas + tasks (todos os cards)
+      parameters:
+        - name: include
+          in: query
+          schema: { type: string, enum: [minimal, pipelines, full] }
+      responses:
+        '200':
+          description: Lista de projetos
+
+  /api/projects/{id}:
+    get:
+      summary: Obter projeto por ID (com pipelines e tasks)
+
+  /api/columns/{columnId}/tasks:
+    post:
+      summary: Criar tarefa em uma coluna

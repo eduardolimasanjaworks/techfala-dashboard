@@ -4,18 +4,38 @@ import { useState } from 'react';
 import { Calendar, Edit2, Check, X } from 'lucide-react';
 
 interface ProjectDatesProps {
+    projectId: string;
     dataInicio: string;
     dataFim?: string;
+    onSaved?: () => void;
 }
 
-export function ProjectDates({ dataInicio: initialDataInicio, dataFim: initialDataFim }: ProjectDatesProps) {
+export function ProjectDates({ projectId, dataInicio: initialDataInicio, dataFim: initialDataFim, onSaved }: ProjectDatesProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [dataInicio, setDataInicio] = useState(initialDataInicio);
     const [dataFim, setDataFim] = useState(initialDataFim || '');
+    const [saving, setSaving] = useState(false);
 
-    const handleSave = () => {
-        // Aqui você pode adicionar lógica para salvar no backend
-        setIsEditing(false);
+    const handleSave = async () => {
+        if (!dataInicio?.trim()) return;
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/projects/${projectId}`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    dataInicio: dataInicio || undefined,
+                    dataFim: dataFim || null,
+                }),
+            });
+            if (res.ok) {
+                setIsEditing(false);
+                onSaved?.();
+            }
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleCancel = () => {
@@ -24,12 +44,13 @@ export function ProjectDates({ dataInicio: initialDataInicio, dataFim: initialDa
         setIsEditing(false);
     };
 
-    // Converte formato DD/MM/YYYY para YYYY-MM-DD para input type="date"
+    // Converte DD/MM/YYYY para YYYY-MM-DD para input type="date"
     const formatToInputDate = (dateStr: string) => {
         if (!dateStr) return '';
         const parts = dateStr.split('/');
-        if (parts.length !== 3) return '';
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        if (dateStr.includes('-') && dateStr.length >= 10) return dateStr.slice(0, 10);
+        return '';
     };
 
     // Converte YYYY-MM-DD para DD/MM/YYYY
@@ -70,10 +91,11 @@ export function ProjectDates({ dataInicio: initialDataInicio, dataFim: initialDa
                     <div className="flex gap-2">
                         <button
                             onClick={handleSave}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#00D084] text-[#0A0A0F] rounded-lg text-sm font-medium hover:bg-[#00965F] transition-colors"
+                            disabled={saving}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#00D084] text-[#0A0A0F] rounded-lg text-sm font-medium hover:bg-[#00965F] transition-colors disabled:opacity-50"
                         >
                             <Check className="w-4 h-4" />
-                            Salvar
+                            {saving ? 'Salvando...' : 'Salvar'}
                         </button>
                         <button
                             onClick={handleCancel}

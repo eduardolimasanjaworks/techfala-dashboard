@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  /* TechFala Brand Colors - Premium Purple */
-  --background: #0A0A0F;
-  --foreground: #FFFFFF;
-  --card: #151520;
-  --card-foreground: #FFFFFF;
+  /* TechFala - Maior contraste e legibilidade */
+  --background: #1a1b26;
+  --foreground: #ececef;
+  --card: #252630;
+  --card-foreground: #f4f4f5;
   --primary: #8B5CF6;
   --primary-foreground: #FFFFFF;
   --success: #10B981;
   --danger: #EF4444;
   --warning: #F59E0B;
-  --muted: #9CA3AF;
-  --border: #1F1F2E;
+  --muted: #a1a1aa;
+  --border: #2d2d3a;
   --accent: #6D28D9;
   --glow: #A78BFA;
 }
@@ -20,8 +20,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: light) {
@@ -38,7 +38,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 /* TechFala Gradient Animations - Advanced */
@@ -103,3 +105,72 @@ body {
 .animate-fifth {
   animation: moveInCircle 20s ease infinite;
 }
+
+/* Contraste e scrollbars no modal de tarefa */
+.select-contraste {
+  background-color: #1a1a24;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.select-contraste option {
+  background-color: #1a1a24;
+  color: #fff;
+}
+
+/* Scrollbars discretas - thin e semi-transparente */
+.scroll-discreto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+.scroll-discreto::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-discreto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-discreto::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+.scroll-discreto::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Padrão Trello-like: fontes legíveis, botões redondos com traçado */
+.modal-layer-1 { z-index: 60; }
+.modal-layer-2 { z-index: 70; }
+.modal-layer-3 { z-index: 80; }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  transition: all 0.15s ease;
+}
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.btn-ghost-accent {
+  color: #A78BFA;
+  border-color: rgba(139, 92, 246, 0.4);
+}
+.btn-ghost-accent:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.6);
+}
+
+.text-ui { font-size: 14px; line-height: 1.5; }
+.text-ui-sm { font-size: 13px; }
+.text-ui-lg { font-size: 15px; }

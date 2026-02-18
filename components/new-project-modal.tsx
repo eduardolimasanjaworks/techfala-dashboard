@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
 
 interface NewProjectModalProps {
@@ -13,34 +13,49 @@ interface NewProjectModalProps {
 export interface NewProjectData {
     empresa: string;
     gerente: string;
-    status: string;
     dataInicio: string;
-    tarefasTotais: number;
-    tarefasAtivas: number;
-    statusOnboarding: string;
+    dataFim?: string;
+    statusOnboarding?: string;
+}
+
+interface UserOption {
+    id: string;
+    nome: string;
 }
 
 export function NewProjectModal({ isOpen, onClose, onSubmit }: NewProjectModalProps) {
+    const [users, setUsers] = useState<UserOption[]>([]);
+    const [loadingUsers, setLoadingUsers] = useState(false);
     const [formData, setFormData] = useState<NewProjectData>({
         empresa: '',
         gerente: '',
-        status: 'No Prazo',
         dataInicio: new Date().toISOString().split('T')[0],
-        tarefasTotais: 0,
-        tarefasAtivas: 0,
+        dataFim: '',
         statusOnboarding: 'Esperando Contrato',
     });
 
+    useEffect(() => {
+        if (isOpen) {
+            setLoadingUsers(true);
+            fetch('/api/users', { credentials: 'include' })
+                .then((res) => res.ok ? res.json() : [])
+                .then((data: UserOption[]) => setUsers(Array.isArray(data) ? data : []))
+                .catch(() => setUsers([]))
+                .finally(() => setLoadingUsers(false));
+        }
+    }, [isOpen]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        onSubmit({
+            ...formData,
+            dataFim: formData.dataFim?.trim() || undefined,
+        });
         setFormData({
             empresa: '',
             gerente: '',
-            status: 'No Prazo',
             dataInicio: new Date().toISOString().split('T')[0],
-            tarefasTotais: 0,
-            tarefasAtivas: 0,
+            dataFim: '',
             statusOnboarding: 'Esperando Contrato',
         });
         onClose();
@@ -73,7 +88,6 @@ export function NewProjectModal({ isOpen, onClose, onSubmit }: NewProjectModalPr
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-[#151520] border border-[#1F1F2E] p-6 shadow-2xl shadow-[#8B5CF6]/20 transition-all">
-                                {/* Header */}
                                 <div className="flex items-center justify-between mb-6">
                                     <Dialog.Title className="text-2xl font-bold text-white flex items-center gap-2">
                                         <Plus className="w-6 h-6 text-[#8B5CF6]" />
@@ -87,9 +101,7 @@ export function NewProjectModal({ isOpen, onClose, onSubmit }: NewProjectModalPr
                                     </button>
                                 </div>
 
-                                {/* Form */}
                                 <form onSubmit={handleSubmit} className="space-y-6">
-                                    {/* Empresa */}
                                     <div>
                                         <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
                                             Nome da Empresa *
@@ -104,38 +116,29 @@ export function NewProjectModal({ isOpen, onClose, onSubmit }: NewProjectModalPr
                                         />
                                     </div>
 
-                                    {/* Gerente */}
                                     <div>
                                         <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
                                             Gerente do Projeto *
                                         </label>
-                                        <input
-                                            type="text"
+                                        <select
                                             required
                                             value={formData.gerente}
                                             onChange={(e) => setFormData({ ...formData, gerente: e.target.value })}
-                                            className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
-                                            placeholder="Ex: Ana Silva"
-                                        />
+                                            disabled={loadingUsers}
+                                            className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all disabled:opacity-50"
+                                        >
+                                            <option value="">
+                                                {loadingUsers ? 'Carregando usuários...' : 'Selecione o gerente'}
+                                            </option>
+                                            {users.map((u) => (
+                                                <option key={u.id} value={u.nome}>
+                                                    {u.nome}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
-                                    {/* Row: Status e Data */}
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                                                Status *
-                                            </label>
-                                            <select
-                                                value={formData.status}
-                                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                                className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
-                                            >
-                                                <option value="No Prazo">No Prazo</option>
-                                                <option value="Em Atraso">Em Atraso</option>
-                                                <option value="Adiantado">Adiantado</option>
-                                            </select>
-                                        </div>
-
                                         <div>
                                             <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
                                                 Data de Início *
@@ -148,46 +151,28 @@ export function NewProjectModal({ isOpen, onClose, onSubmit }: NewProjectModalPr
                                                 className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
                                             />
                                         </div>
-                                    </div>
-
-                                    {/* Row: Tarefas */}
-                                    <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                                                Tarefas Totais
+                                                Data de Término (opcional)
                                             </label>
                                             <input
-                                                type="number"
-                                                min="0"
-                                                value={formData.tarefasTotais}
-                                                onChange={(e) => setFormData({ ...formData, tarefasTotais: parseInt(e.target.value) || 0 })}
-                                                className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
-                                                placeholder="0"
+                                                type="date"
+                                                value={formData.dataFim || ''}
+                                                onChange={(e) => setFormData({ ...formData, dataFim: e.target.value })}
+                                                className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
                                             />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                                                Tarefas Ativas
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={formData.tarefasAtivas}
-                                                onChange={(e) => setFormData({ ...formData, tarefasAtivas: parseInt(e.target.value) || 0 })}
-                                                className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
-                                                placeholder="0"
-                                            />
+                                            <p className="text-xs text-[#71717a] mt-1">
+                                                Status (Excelente/No prazo) só aparece com data de término
+                                            </p>
                                         </div>
                                     </div>
 
-                                    {/* Status de Onboarding */}
                                     <div>
                                         <label className="block text-sm font-medium text-[#9CA3AF] mb-2">
-                                            Status de Onboarding *
+                                            Status de Onboarding
                                         </label>
                                         <select
-                                            value={formData.statusOnboarding}
+                                            value={formData.statusOnboarding || 'Esperando Contrato'}
                                             onChange={(e) => setFormData({ ...formData, statusOnboarding: e.target.value })}
                                             className="w-full px-4 py-3 bg-[#0A0A0F] border border-[#1F1F2E] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] transition-all"
                                         >
@@ -197,7 +182,6 @@ export function NewProjectModal({ isOpen, onClose, onSubmit }: NewProjectModalPr
                                         </select>
                                     </div>
 
-                                    {/* Buttons */}
                                     <div className="flex gap-3 pt-4">
                                         <button
                                             type="button"

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { NoiseOverlay } from "@/components/noise-overlay";
 
-const outfit = Outfit({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-outfit",
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -20,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${outfit.variable}`}>
-      <body className="antialiased bg-[#050508] text-white font-sans selection:bg-purple-500/30">
+    <html lang="pt-BR" className={`${inter.variable} overflow-x-hidden`} suppressHydrationWarning>
+      <body className="antialiased bg-[#1a1b26] text-[#e4e4e7] font-sans selection:bg-purple-500/30 overflow-x-hidden text-base" suppressHydrationWarning>
         <NoiseOverlay />
         {children}
       </body>
